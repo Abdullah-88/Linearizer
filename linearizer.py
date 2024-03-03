@@ -7,7 +7,7 @@ import math
 
 
 
-# helper functions
+
 
 def default(val, default_val):
     return val if val is not None else default_val
@@ -18,7 +18,7 @@ def init_(tensor):
     tensor.uniform_(-std, std)
     return tensor
 
-# helper classes
+
 
 class Residual(nn.Module):
     def __init__(self, fn):
@@ -110,25 +110,25 @@ class LinformerSelfAttention(nn.Module):
 
         kv_projs = (self.proj_k, self.proj_v if not self.share_kv else self.proj_k)
 
-        # project keys and values along the sequence length dimension to k
+        
 
         keys, values = map(proj_seq_len, zip((keys, values), kv_projs))
 
-        # merge head into batch for queries and key / values
+       
 
         queries = queries.reshape(b, n, h, -1).transpose(1, 2)
 
         merge_key_values = lambda t: t.reshape(b, k, -1, d_h).transpose(1, 2).expand(-1, h, -1, -1)
         keys, values = map(merge_key_values, (keys, values))
 
-        # attention
+       
 
         dots = torch.einsum('bhnd,bhkd->bhnk', queries, keys) * (d_h ** -0.5)
         attn = dots.softmax(dim=-1)
         attn = self.dropout(attn)
         out = torch.einsum('bhnk,bhkd->bhnd', attn, values)
 
-        # split heads
+       
         out = out.transpose(1, 2).reshape(b, n, -1)
         return self.to_out(out)
 
